@@ -286,8 +286,8 @@ Ans. In conclusion, my first goal based agent was created based on a Bayesian ne
 
 
 
-Code
-
+## Code
+```
 from ucimlrepo import fetch_ucirepo 
 import pandas as pd
 import numpy as np
@@ -736,3 +736,4 @@ if agent.model and hasattr(agent, 'model'):
     print(f"Number of edges: {stats['num_edges']}")
 else:
     print("Error: Model not properly initialized. Please train the agent first.")
+```
