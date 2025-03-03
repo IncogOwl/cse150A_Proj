@@ -104,6 +104,75 @@ The model first discretizes continuous variables using `KBinsDiscretizer` from s
 
 The most complex CPT in the model is for the target variable Y (Default), which has 8 parent nodes according to the network structure, potentially resulting in a large conditional probability table.
 
+# Update 
+## Comparison with Other Probabilistic Models
+
+### Bayesian Network vs. Naive Bayes
+
+| Aspect | Bayesian Network (Current Model) | Naive Bayes |
+|--------|----------------------------------|-------------|
+| **Structure** | Complex network with edges between features (e.g., AVG_BILL → PAYMENT_RATIO) | Simple star topology where all features connect only to the class variable |
+| **Independence Assumption** | Captures conditional dependencies between features | Assumes all features are conditionally independent given the class |
+| **Representation Power** | Can model complex relationships and interactions | Limited by the strong independence assumption |
+| **Parameter Space** | Larger parameter space (898,248 in our model) | Smaller parameter space (features × classes) |
+| **Training Complexity** | More complex due to structure learning and larger CPTs | Simpler, only needs P(feature\|class) probabilities |
+| **Example in Our Model** | Our model captures how bill amounts affect payment ratios which then affect default probability | Would incorrectly assume payment ratios are independent of bill amounts |
+
+In a Naive Bayes model, the joint probability would be simplified to:
+```
+P(Y, X1, X2, X3, X4, X5, ...) = P(Y) × P(X1|Y) × P(X2|Y) × P(X3|Y) × ...
+```
+
+This would miss crucial relationships like P(PAYMENT_RATIO|AVG_BILL), which our Bayesian Network correctly models as:
+```
+P(Y, X1, X2, ..., PAYMENT_RATIO, AVG_BILL, ...) = P(Y|X1, X2, ..., PAYMENT_RATIO, ...) × P(PAYMENT_RATIO|AVG_BILL, X1, ...) × ...
+```
+
+### Bayesian Network vs. Hidden Markov Models (HMMs)
+
+| Aspect | Bayesian Network (Current Model) | Hidden Markov Model |
+|--------|----------------------------------|---------------------|
+| **Temporal Structure** | No inherent temporal structure; models probabilistic relationships | Specifically designed for sequential data with temporal dependencies |
+| **State Observability** | All variables can be observed | Contains hidden states that must be inferred |
+| **Training Algorithm** | Maximum Likelihood Estimation for CPTs | Baum-Welch algorithm |
+| **Inference Tasks** | Computes probabilities of specific events | Often used for sequence labeling, state prediction, or decoding |
+| **Application Focus** | Static classification/prediction problems | Time-series analysis, speech recognition, biological sequence analysis |
+| **Relevance to Our Problem** | Appropriate for credit default prediction based on static features | Would be more appropriate if we were tracking payment behavior over time sequences |
+
+### Training Process Specifics
+
+The training process for our Bayesian Network using pgmpy differs significantly from other models:
+
+1. **Discretization Impacts**:
+   - Prior to training, continuous variables are discretized into 3 bins using quantile-based discretization
+   - This reduces the dimensionality of the CPTs but introduces quantization errors
+   - Unlike models that handle continuous variables directly (like Gaussian Naive Bayes), our approach requires this preprocessing step
+
+2. **Parameter Estimation**:
+   - The `MaximumLikelihoodEstimator` in pgmpy calculates parameters without smoothing by default
+   - For sparse data combinations, this can lead to zero probabilities
+
+3. **Structural Learning Considerations**:
+   - Our model used a predefined structure based on domain knowledge
+   - This contrasts with fixed-structure models like Naive Bayes or standard HMMs
+
+5. **Inference Algorithm Differences**:
+
+We chose variable elimination as it works by systematically "eliminating" variables from the joint distribution by marginalizing them out. For a query like P(Default=1 | Evidence), the algorithm:
+- Identifies factors (CPTs) relevant to the query
+- Creates an elimination ordering of non-query, non-evidence variables
+- For each variable in the ordering:
+   - Collects all factors containing the variable
+   - Multiplies these factors to create a new factor
+   - Sums out (marginalizes) the variable from this new factor
+- Multiplies the remaining factors and normalizes to get the final probability
+
+For example, when computing the probability of default given demographic and financial features, Variable Elimination might process PAYMENT_RATIO before AVG_BILL, effectively computing: P(Y=1|X1,X2,...) = ∑_{PAYMENT_RATIO} P(Y=1|X1,X2,...,PAYMENT_RATIO
+
+The pgmpy library implements Variable Elimination with optimizations to make it faster, efficient and accurate for our network. Inference in Naive Bayes is trivial (simple multiplication of conditional probabilities) but limited by its restrictive independence assumptions. HMM inference using the Forward-Backward algorithm is specialized for sequence data and inapplicable to our problem structure.
+
+By using a Bayesian Network, we've created a model that captures complex dependencies between features while maintaining interpretability. This is a significant advantage over both simpler models like Naive Bayes and more specialized models like HMMs.
+
 # Update
 ## Agent Design using PEAS Framework
 
@@ -139,30 +208,29 @@ Accuracy: 0.7933
 ## Conclusion
 
 ### Model Performance Analysis
-The Bayesian network achieved an accuracy of 79.33%, which means that approximately 4 out of 5 predictions were correct. However, looking deeper at the classification report reveals important nuances:
+The Bayesian network achieved an accuracy of 79.33%. However, looking deeper at the classification report reveals important nuances:
 
 - **High Performance on Non-Defaults (Class 0)**: 95% recall, meaning the model correctly identified 95% of non-defaulting customers.
-- **Lower Performance on Defaults (Class 1)**: Only 25% recall for defaults, indicating that the model missed 75% of actual defaults.
+- **Lower Performance on Defaults (Class 1)**: Only 25% recall for defaults.
 - **Class Imbalance Impact**: The dataset is imbalanced (77.88% non-defaults vs. 22.12% defaults), which helps explain why the model performs better at identifying non-defaults.
 
 ### Key Takeaways
 
 1. **Effective Feature Engineering**: The approach of creating aggregate features (AVG_PAYMENT_DELAY, AVG_BILL, AVG_PAYMENT, PAYMENT_RATIO) was effective in simplifying the network while maintaining good predictive power.
 
-2. **Insightful Probabilistic Relationships**: The project revealed important relationships between features:
+2. **Insightful Probabilistic Relationships**: It revealed important relationships between features:
    - Strong relationship between Payment Ratio and Default
    - Identified that P(No Default | AVG_PAYMENT=2) = 86.09% was among the strongest predictors
    - Found meaningful correlations between variables like AVG_BILL and PAYMENT_RATIO (-0.5518)
 
-3. **Model Interpretability**: A major advantage of the Bayesian network approach is that it provides interpretable probability relationships, unlike black-box models.
+3. **Model Interpretability**: A major advantage of the Bayesian network approach is that it provides interpretable probability relationships.
 
 ### Potential Improvements
 
 1. More sophisticated feature engineering
-2. Adaptive binning techniques for continuous variables
-3. Hybrid approaches combining Bayesian networks with other models
-4. More efficient inference algorithms
-5. Focusing on improving the recall for the minority class (defaults), which would likely provide the most value, even if it comes at a slight cost to overall accuracy
+2. Hybrid approaches combining Bayesian networks with other models
+3. More efficient inference algorithms
+4. Focusing on improving the recall for the minority class (defaults), which would likely provide the most value, even if it comes at a slight cost to overall accuracy
 
 The model provides valuable interpretability through its probability relationships, making it useful for understanding customer default risk factors in addition to making predictions.
 
