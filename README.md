@@ -712,7 +712,6 @@ def visualize_bayesian_network():
     print(f"Financial Variables: {financial_nodes}")
     print(f"Behavior Variables: {behavior_nodes}")
     print(f"Target Variable: {target_node}")
-
-if __name__ == "__main__":
-    visualize_bayesian_network()
+    
+visualize_bayesian_network()
 ```
