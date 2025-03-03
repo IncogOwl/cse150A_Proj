@@ -1,268 +1,118 @@
-# CSE150A Project- Identifying Credit Card Defaults
+# CSE150A Project - Identifying Credit Card Defaults
 
-## Data Exploration 
+## Data Exploration
 
-## 1. Dataset Overview
+| Category | Key Findings |
+|----------|-------------|
+| **Dataset Overview** | • 30,000 entries with 24 columns<br>• All columns are of type int64<br>• Memory usage: 5.5 MB |
+| **Missing Values** | • No missing values found in any column |
+| **Demographic Variables** | • Gender: 60.37% female, 39.63% male<br>• Education: 46.77% university, 35.28% graduate, 16.39% high school, 1.56% others<br>• Marital Status: 53.21% single, 45.53% married, 1.08% others<br>• Age: Mean 35.49 years, Range 21-79 years |
+| **Payment Status** | • Varying patterns of payment behavior<br>• Most accounts current (0) or with slight delays (-1, -2) |
+| **Bill Amounts** | • Significant variation with maximum bills ranging from 891,586 to 1,664,089<br>• Negative values present (possible credits)<br>• Median bills range from 17,071 to 22,381 |
+| **Payment Amounts** | • Most payments concentrated in lower ranges<br>• Significant outliers present<br>• Median payments around 1,500-2,100 |
+| **Class Balance** | • No Default (0): 77.88%<br>• Default (1): 22.12% |
+| **Outlier Analysis** | • Credit Amount: 167 outliers<br>• Age: 272 outliers<br>• Bill Amounts: ~2,400-2,725 outliers<br>• Payment Amounts: ~2,700-3,000 outliers |
+| **Scale Analysis** | • Credit Amount: 10,000 to 1,000,000<br>• Age: 21 to 79<br>• Bill Amounts: -339,603 to 1,664,089<br>• Payment Amounts: 0 to 1,684,259 |
 
-Shape of the dataset: (30000, 24)
+## Network Probability Analysis
 
-First few rows:
-```
-       X1  X2  X3  X4  X5  X6  X7  X8  X9  X10  ...    X15    X16    X17  \
-0   20000   2   2   1  24   2   2  -1  -1   -2  ...      0      0      0   
-1  120000   2   2   2  26  -1   2   0   0    0  ...   3272   3455   3261   
-2   90000   2   2   2  34   0   0   0   0    0  ...  14331  14948  15549   
-3   50000   2   2   1  37   0   0   0   0    0  ...  28314  28959  29547   
-4   50000   1   2   1  57  -1   0  -1   0    0  ...  20940  19146  19131   
-
-    X18    X19    X20   X21   X22   X23  Y  
-0     0    689      0     0     0     0  1  
-1     0   1000   1000  1000     0  2000  1  
-2  1518   1500   1000  1000  1000  5000  0  
-3  2000   2019   1200  1100  1069  1000  0  
-4  2000  36681  10000  9000   689   679  0  
-```
-
-Dataset Info:
-- 30,000 entries
-- 24 columns
-- All columns are of type int64
-- Memory usage: 5.5 MB
-
-## 2. Missing Values Analysis
-
-No missing values found in any column.
-
-## 3. Statistical Summary
-
-Key statistics for all features (showing mean, std, min, max, quartiles).
-
-For example, X1 (Credit Amount):
-- Mean: 167,484.32
-- Std: 129,747.66
-- Min: 10,000
-- Max: 1,000,000
-- Median: 140,000
-
-## 4. Feature-specific Analysis
-
-### Demographic Variables
-
-Gender Distribution (1 = male, 2 = female):
-- Female: 60.37%
-- Male: 39.63%
-
-Education Distribution:
-- University: 46.77%
-- Graduate: 35.28%
-- High School: 16.39%
-- Others: 1.56%
-
-Marital Status:
-- Single: 53.21%
-- Married: 45.53%
-- Others: 1.08%
-
-Age Statistics:
-- Mean: 35.49 years
-- Median: 34 years
-- Range: 21-79 years
-
-### Payment Status Distribution
-
-Repayment Status (X6-X11) shows varying patterns of payment behavior, with most accounts being current (0) or having slight delays (-1, -2).
-
-### Bill Amount Statistics
-
-Bill amounts (X12-X17) show significant variation:
-- Maximum bills range from 891,586 to 1,664,089
-- Negative values present, indicating possible credits
-- Median bills range from 17,071 to 22,381
-
-### Payment Amount Statistics
-
-Payment amounts (X18-X23):
-- Most payments concentrated in lower ranges
-- Significant outliers present
-- Median payments around 1,500-2,100
-
-## 5. Class Balance Analysis
-
-Default payment distribution:
+### Target Variable Analysis (Y)
 - No Default (0): 77.88%
 - Default (1): 22.12%
 
-## 6. Outlier Analysis
+### Feature Analysis
 
-Number of outliers detected:
-- Credit Amount (X1): 167 outliers
-- Age (X5): 272 outliers
-- Bill Amounts (X12-X17): ~2,400-2,725 outliers
-- Payment Amounts (X18-X23): ~2,700-3,000 outliers
+| Feature | Distribution | Strongest Relationship |
+|---------|--------------|------------------------|
+| X1 (Credit Amount) | • Level 2: 37.17%<br>• Level 1: 32.06%<br>• Level 0: 30.77% | P(No Default\|X1=2) = 84.87% |
+| X2 (Gender) | • Female (2): 60.37%<br>• Male (1): 39.63% | P(No Default\|X2=1) = 79.22% |
+| X3 (Education) | • University (2): 46.77%<br>• Graduate (1): 35.28%<br>• High School (3): 16.39%<br>• Others: 1.51% | P(No Default\|X3=0) = 100% |
+| X4 (Marital Status) | • Single (2): 53.21%<br>• Married (1): 45.53%<br>• Others (3): 1.08%<br>• Unknown (0): 0.18% | P(No Default\|X4=0) = 90.74% |
+| X5 (Age Group) | • Group 1: 34.28%<br>• Group 2: 33.66%<br>• Group 0: 32.06% | P(No Default\|X5=1) = 79.80% |
+| Average Payment Delay | • High (2): 57.75%<br>• Low (0): 30.64%<br>• Medium (1): 11.61% | P(No Default\|AVG_PAYMENT_DELAY=1) = 84.47% |
+| Average Bill Amount | • High (2): 33.49%<br>• Low (0): 33.29%<br>• Medium (1): 33.22% | P(No Default\|AVG_BILL=2) = 79.19% |
+| Average Payment | • High (2): 33.49%<br>• Medium (1): 33.30%<br>• Low (0): 33.20% | P(No Default\|AVG_PAYMENT=2) = 86.09% |
+| Payment Ratio | • High (2): 33.40%<br>• Low (0): 33.33%<br>• Medium (1): 33.27% | P(No Default\|PAYMENT_RATIO=2) = 84.69% |
 
-## 7. Scale Analysis
+### Feature Relationships
+- Average Bill vs Payment Ratio: Correlation -0.5518
+- Average Payment vs Payment Ratio: Correlation 0.1187
+- Credit Amount vs Payment Ratio: Correlation 0.1864
 
-Variable ranges vary significantly:
-- Credit Amount: 10,000 to 1,000,000
-- Age: 21 to 79
-- Bill Amounts: -339,603 to 1,664,089
-- Payment Amounts: 0 to 1,684,259
-
-# CPTs
-
-# Network Probability Analysis
-
-## Target Variable Analysis (Y)
-
-Distribution:
-- No Default (0): 77.88%
-- Default (1): 22.12%
-
-## Feature Analysis
-
-### X1 (Credit Amount)
-Distribution:
-- Level 2: 37.17%
-- Level 1: 32.06%
-- Level 0: 30.77%
-
-Strongest relationship: P(No Default|X1=2) = 84.87%
-
-### X2 (Gender)
-Distribution:
-- Female (2): 60.37%
-- Male (1): 39.63%
-
-Strongest relationship: P(No Default|X2=1) = 79.22%
-
-### X3 (Education)
-Distribution:
-- University (2): 46.77%
-- Graduate (1): 35.28%
-- High School (3): 16.39%
-- Others: 1.51%
-
-Strongest relationship: P(No Default|X3=0) = 100%
-
-### X4 (Marital Status)
-Distribution:
-- Single (2): 53.21%
-- Married (1): 45.53%
-- Others (3): 1.08%
-- Unknown (0): 0.18%
-
-Strongest relationship: P(No Default|X4=0) = 90.74%
-
-### X5 (Age Group)
-Distribution:
-- Group 1: 34.28%
-- Group 2: 33.66%
-- Group 0: 32.06%
-
-Strongest relationship: P(No Default|X5=1) = 79.80%
-
-### Average Payment Delay
-Distribution:
-- High (2): 57.75%
-- Low (0): 30.64%
-- Medium (1): 11.61%
-
-Statistics:
-- Mean: 1.27
-- Median: 2.00
-- Std: 0.90
-
-Strongest relationship: P(No Default|AVG_PAYMENT_DELAY=1) = 84.47%
-
-### Average Bill Amount
-Distribution:
-- High (2): 33.49%
-- Low (0): 33.29%
-- Medium (1): 33.22%
-
-Strongest relationship: P(No Default|AVG_BILL=2) = 79.19%
-
-### Average Payment
-Distribution:
-- High (2): 33.49%
-- Medium (1): 33.30%
-- Low (0): 33.20%
-
-Strongest relationship: P(No Default|AVG_PAYMENT=2) = 86.09%
-
-### Payment Ratio
-Distribution:
-- High (2): 33.40%
-- Low (0): 33.33%
-- Medium (1): 33.27%
-
-Statistics:
-- Mean: 1.00
-- Median: 1.00
-- Std: 0.82
-
-Strongest relationship: P(No Default|PAYMENT_RATIO=2) = 84.69%
-
-## Feature Relationships
-
-### Average Bill vs Payment Ratio
-- Correlation: -0.5518
-- Strongest relationship: P(PAYMENT_RATIO=2|AVG_BILL=0) = 69.99%
-
-### Average Payment vs Payment Ratio
-- Correlation: 0.1187
-- Strongest relationship: P(PAYMENT_RATIO=2|AVG_PAYMENT=2) = 44.04%
-
-### Credit Amount vs Payment Ratio
-- Correlation: 0.1864
-- Strongest relationship: P(PAYMENT_RATIO=1|X1=0) = 52.85%
-
-## Network Statistics
+### Network Statistics
 - Total parameters: 898,248
 - Nodes: 11
 - Edges: 13
 
+## Bayesian Network Structure
 
-# Question and Answer
+![Bayesian Network for Credit Card Default Prediction](bayesian_network_visualization.png)
 
-- Explain what your AI agent does in terms of PEAS. What is the "world" like? 
+The Bayesian network has the following structure:
+- **Demographic Nodes**: Gender (X2), Education (X3), Marriage (X4), Age (X5)
+- **Financial Nodes**: Credit Limit (X1), Average Bill, Average Payment, Payment Ratio
+- **Behavior Nodes**: Recent Payment Status, Average Payment Delay
+- **Target Node**: Default (Y)
 
-Ans. Using the PEAS model, the performance metric is the accuracy for whether a customer defaulted on their credit card. It is based in a fully observable, deterministic, episodic, semi-dynamic, continuous and single agent environment. The actuator for this agent is the screen display which would include questions about their financial data and the prediction. The sensor for this agent is the keyboard which the user will use to enter the information, run the agent and give it the necessary information. Using all of this information, I plan to build my goal-based agent. The world invloves using past customer demographics, payment history over 6 months, bill amounts over 6 months, payment amounts over 6 months and credit limits. 
+## Implementation Details
 
-- What kind of agent is it? Goal based? Utility based? etc. 
+### Libraries Used
+I used the **pgmpy** library for building the Bayesian Network and calculating the CPTs:
 
-Ans. It is a goal-based agent whose goal it is trying to maximise is to predict with the highest accuracy whether a customer defaulted on their credit card.
+| Library Component | Purpose |
+|-------------------|---------|
+| `pgmpy.models.BayesianNetwork` | Creating the network structure |
+| `pgmpy.estimators.MaximumLikelihoodEstimator` | Calculating the CPTs |
+| `pgmpy.inference.VariableElimination` | Performing probabilistic inference |
 
-- Describe how your agent is set up and where it fits in probabilistic modeling
+### CPT Calculation Method
+The Maximum Likelihood Estimator (MLE) in pgmpy calculates the CPTs using the following approach:
 
-Ans. I built my agent using a bayesian network which made variables as nodes such as demographics, payment history and bill amounts which represents dependencies through directed edges
-and conditional probabilities through CPTs and allows for probabilistic inference for predictions. Each engineered feature has its own conditional probability distribution. It created aggregate features that captured Payment delay patterns, Bill-to-payment ratios and credit utilization patterns. I also discretized the continuous variables as it enables estimation of conditional probabilities. The key probability was P(Default | Evidence) = P(Default | Demographics, PaymentHistory, BillAmounts, PaymentAmounts) wherein I had prior probabilities: Initial default rates, base distributions of demographic variables. Conditional Probabilities:
-P(Default | Payment History), P(Default | Bill Amounts), P(Default | Demographics). 
+1. For each node in the network, it counts the frequency of each possible value of the node given each possible combination of values of its parent nodes.
+2. These counts are converted to probabilities by dividing by the total counts for each parent combination.
+3. Mathematically, for a node X with parents Pa(X), it calculates:
+   - P(X = x | Pa(X) = pa) = (Count of X = x and Pa(X) = pa) / (Count of Pa(X) = pa)
 
-The network structure was 
+### CPTs in the Network
+The model calculates the following conditional probability tables:
 
-Demographics (X2-X5) → Default (Y)
-                    ↗
-Payment History (X6-X11) 
-                    ↗
-Bill Amounts (X12-X17)
-                    ↗
-Payment Amounts (X18-X23)
+#### Demographic CPTs
+- P(Y | X2) - Default probability given Gender
+- P(Y | X3) - Default probability given Education
+- P(Y | X4) - Default probability given Marriage
+- P(Y | X5) - Default probability given Age
 
+#### Financial CPTs
+- P(PAYMENT_RATIO | X1) - Payment ratio given Credit limit
+- P(Y | X1) - Default probability given Credit limit
+- P(PAYMENT_RATIO | AVG_BILL) - Payment ratio given Average bill
+- P(PAYMENT_RATIO | AVG_PAYMENT) - Payment ratio given Average payment
+- P(Y | AVG_BILL) - Default probability given Average bill
+- P(Y | AVG_PAYMENT) - Default probability given Average payment
 
-- Train your first model and Evaluate your model
+#### Behavior CPTs
+- P(Y | RECENT_PAYMENT_STATUS) - Default probability given Recent payment status
+- P(Y | AVG_PAYMENT_DELAY) - Default probability given Average payment delay
+- P(Y | PAYMENT_RATIO) - Default probability given Payment ratio
 
-Ans. Here is the output for it:
+### Data Preprocessing
+The model first discretizes continuous variables using `KBinsDiscretizer` from scikit-learn (with n_bins=3 and strategy='quantile'), converting them into ordinal categorical variables to make the CPT calculation feasible. This is an important preprocessing step since pgmpy works with discrete variables.
 
-Training the agent...
-Preparing data...
-Defining network structure...
-Estimating CPDs...
+The most complex CPT in the model is for the target variable Y (Default), which has 8 parent nodes according to the network structure, potentially resulting in a large conditional probability table.
 
-Making predictions...
+## Agent Design using PEAS Framework
 
-Model Performance:
+| Component | Description |
+|-----------|-------------|
+| **Performance Metric** | Accuracy of predicting whether a customer will default on their credit card |
+| **Environment** | Fully observable, deterministic, episodic, semi-dynamic, continuous, single agent |
+| **Actuators** | Screen display showing questions about financial data and prediction |
+| **Sensors** | Keyboard for user input and information gathering |
+| **Agent Type** | Goal-based agent trying to maximize prediction accuracy |
 
+## Model Performance
+
+```
 Classification Report:
               precision    recall  f1-score   support
 
@@ -273,20 +123,46 @@ Classification Report:
    macro avg       0.69      0.60      0.61      6000
 weighted avg       0.76      0.79      0.76      6000
 
-
 Confusion Matrix:
 [[4435  252]
  [ 988  325]]
 
 Accuracy: 0.7933
+```
 
-- Conclusion 
+## Conclusion
 
-Ans. In conclusion, my first goal based agent was created based on a Bayesian network that aims to maximise the accuracy of identifying when a user will default on their credit card using the probaility based relationships between the features in the dataset. Using the bayesian network, it acheived an accuraxy of 0.7933. We can improve the model by implementing feature engineering with more sophisticated aggregate features. Another way to improve the model would be to implement adaptive binning based on data distribution or using domain-specific thresholds for certain variables. We could create and use a hybrid approach combining Bayesian Network with other models. We could choose more efficient inference algorithms to find the best accuracy.
+### Model Performance Analysis
+The Bayesian network achieved an accuracy of 79.33%, which means that approximately 4 out of 5 predictions were correct. However, looking deeper at the classification report reveals important nuances:
+
+- **High Performance on Non-Defaults (Class 0)**: 95% recall, meaning the model correctly identified 95% of non-defaulting customers.
+- **Lower Performance on Defaults (Class 1)**: Only 25% recall for defaults, indicating that the model missed 75% of actual defaults.
+- **Class Imbalance Impact**: The dataset is imbalanced (77.88% non-defaults vs. 22.12% defaults), which helps explain why the model performs better at identifying non-defaults.
+
+### Key Takeaways
+
+1. **Effective Feature Engineering**: The approach of creating aggregate features (AVG_PAYMENT_DELAY, AVG_BILL, AVG_PAYMENT, PAYMENT_RATIO) was effective in simplifying the network while maintaining good predictive power.
+
+2. **Insightful Probabilistic Relationships**: The project revealed important relationships between features:
+   - Strong relationship between Payment Ratio and Default
+   - Identified that P(No Default | AVG_PAYMENT=2) = 86.09% was among the strongest predictors
+   - Found meaningful correlations between variables like AVG_BILL and PAYMENT_RATIO (-0.5518)
+
+3. **Model Interpretability**: A major advantage of the Bayesian network approach is that it provides interpretable probability relationships, unlike black-box models.
+
+### Potential Improvements
+
+1. More sophisticated feature engineering
+2. Adaptive binning techniques for continuous variables
+3. Hybrid approaches combining Bayesian networks with other models
+4. More efficient inference algorithms
+5. Focusing on improving the recall for the minority class (defaults), which would likely provide the most value, even if it comes at a slight cost to overall accuracy
+
+The model provides valuable interpretability through its probability relationships, making it useful for understanding customer default risk factors in addition to making predictions.
 
 
+# Code
 
-## Code
 ```
 from ucimlrepo import fetch_ucirepo 
 import pandas as pd
@@ -294,6 +170,8 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from pgmpy.models import BayesianNetwork
+import networkx as nx
+import matplotlib.patches as mpatches
 from pgmpy.factors.discrete import TabularCPD
 from pgmpy.estimators import MaximumLikelihoodEstimator
 from pgmpy.inference import VariableElimination
@@ -736,4 +614,105 @@ if agent.model and hasattr(agent, 'model'):
     print(f"Number of edges: {stats['num_edges']}")
 else:
     print("Error: Model not properly initialized. Please train the agent first.")
+def visualize_bayesian_network():
+    # Create a directed graph
+    G = nx.DiGraph()
+    
+    # Define nodes by categories
+    demographic_nodes = ['X2: Gender', 'X3: Education', 'X4: Marriage', 'X5: Age']
+    financial_nodes = ['X1: Credit Limit', 'AVG_BILL: Average Bill', 'AVG_PAYMENT: Average Payment', 'PAYMENT_RATIO: Payment Ratio']
+    behavior_nodes = ['RECENT_PAYMENT_STATUS: Recent Payment', 'AVG_PAYMENT_DELAY: Avg Payment Delay']
+    target_node = ['Y: Default']
+    
+    # Add all nodes to the graph
+    all_nodes = demographic_nodes + financial_nodes + behavior_nodes + target_node
+    G.add_nodes_from(all_nodes)
+    
+    # Define the edges (connections between nodes)
+    edges = [
+        # Demographic influences
+        ('X2: Gender', 'Y: Default'),
+        ('X3: Education', 'Y: Default'),
+        ('X4: Marriage', 'Y: Default'),
+        ('X5: Age', 'Y: Default'),
+        
+        # Financial influences
+        ('X1: Credit Limit', 'PAYMENT_RATIO: Payment Ratio'),
+        ('X1: Credit Limit', 'Y: Default'),
+        
+        # Payment behavior
+        ('RECENT_PAYMENT_STATUS: Recent Payment', 'Y: Default'),
+        ('AVG_PAYMENT_DELAY: Avg Payment Delay', 'Y: Default'),
+        ('PAYMENT_RATIO: Payment Ratio', 'Y: Default'),
+        
+        # Bill and payment relationships
+        ('AVG_BILL: Average Bill', 'PAYMENT_RATIO: Payment Ratio'),
+        ('AVG_PAYMENT: Average Payment', 'PAYMENT_RATIO: Payment Ratio'),
+        ('AVG_BILL: Average Bill', 'Y: Default'),
+        ('AVG_PAYMENT: Average Payment', 'Y: Default')
+    ]
+    
+    # Add edges to the graph
+    G.add_edges_from(edges)
+    
+    # Create a figure with a specific size
+    plt.figure(figsize=(14, 10))
+    
+    # Define node positions using a hierarchical layout
+    pos = nx.spring_layout(G, seed=42)  # Alternative layout if pygraphviz is not available
+    
+    # Define node colors by category
+    node_colors = []
+    for node in G.nodes():
+        if node in demographic_nodes:
+            node_colors.append('#f9d5e5')  # Pink for demographic
+        elif node in financial_nodes:
+            node_colors.append('#d3f8e2')  # Green for financial
+        elif node in behavior_nodes:
+            node_colors.append('#e3f2fd')  # Blue for behavior
+        else:
+            node_colors.append('#ffe0b2')  # Orange for target
+    
+    # Draw the nodes with different colors
+    nx.draw_networkx_nodes(G, pos, node_size=3000, node_color=node_colors, edgecolors='black')
+    
+    # Draw the edges
+    nx.draw_networkx_edges(G, pos, edge_color='gray', arrows=True, arrowsize=20, width=1.5)
+    
+    # Draw the labels with adjusted font size
+    nx.draw_networkx_labels(G, pos, font_size=10, font_weight='bold')
+    
+    # Create a legend
+    demographic_patch = mpatches.Patch(color='#f9d5e5', label='Demographic Variables')
+    financial_patch = mpatches.Patch(color='#d3f8e2', label='Financial Variables')
+    behavior_patch = mpatches.Patch(color='#e3f2fd', label='Behavior Variables')
+    target_patch = mpatches.Patch(color='#ffe0b2', label='Target Variable')
+    plt.legend(handles=[demographic_patch, financial_patch, behavior_patch, target_patch], 
+              loc='upper center', bbox_to_anchor=(0.5, 1.05), ncol=4)
+    
+    # Add title
+    plt.title('Bayesian Network for Credit Card Default Prediction', fontsize=16)
+    
+    # Remove axes
+    plt.axis('off')
+    
+    # Adjust the layout
+    plt.tight_layout()
+    
+    # Show the plot
+    plt.savefig('bayesian_network_visualization.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    
+    # Print model information
+    print("Bayesian Network Structure:")
+    print(f"Number of nodes: {len(G.nodes())}")
+    print(f"Number of edges: {len(G.edges())}")
+    print("\nNode Categories:")
+    print(f"Demographic Variables: {demographic_nodes}")
+    print(f"Financial Variables: {financial_nodes}")
+    print(f"Behavior Variables: {behavior_nodes}")
+    print(f"Target Variable: {target_node}")
+
+if __name__ == "__main__":
+    visualize_bayesian_network()
 ```
