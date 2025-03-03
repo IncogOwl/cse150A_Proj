@@ -148,15 +148,11 @@ The training process for our Bayesian Network using pgmpy differs significantly 
    - This reduces the dimensionality of the CPTs but introduces quantization errors
    - Unlike models that handle continuous variables directly (like Gaussian Naive Bayes), our approach requires this preprocessing step
 
-2. **Parameter Estimation**:
-   - The `MaximumLikelihoodEstimator` in pgmpy calculates parameters without smoothing by default
-   - For sparse data combinations, this can lead to zero probabilities
-
-3. **Structural Learning Considerations**:
+2. **Structural Learning Considerations**:
    - Our model used a predefined structure based on domain knowledge
    - This contrasts with fixed-structure models like Naive Bayes or standard HMMs
 
-5. **Inference Algorithm Differences**:
+3. **Inference Algorithm Differences**:
 
 We chose variable elimination as it works by systematically "eliminating" variables from the joint distribution by marginalizing them out. For a query like P(Default=1 | Evidence), the algorithm:
 - Identifies factors (CPTs) relevant to the query
@@ -224,6 +220,7 @@ The Bayesian network achieved an accuracy of 79.33%. However, looking deeper at 
    - Found meaningful correlations between variables like AVG_BILL and PAYMENT_RATIO (-0.5518)
 
 3. **Model Interpretability**: A major advantage of the Bayesian network approach is that it provides interpretable probability relationships.
+4. **Advantage over Simpler Models**: The Bayesian Network's ability to capture complex dependencies between features gives it an edge over simpler models like Naive Bayes for this problem domain.
 
 ### Potential Improvements
 
@@ -789,3 +786,6 @@ def visualize_bayesian_network():
     
 visualize_bayesian_network()
 ```
+## Citations
+
+- Used Claude AI for support on writing the points more concisely and formatting the markdown file. I also used it to help write me the code on the project to help visualize and build the network.
