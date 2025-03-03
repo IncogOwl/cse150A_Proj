@@ -1,5 +1,6 @@
 # CSE150A Project - Identifying Credit Card Defaults
 
+# Update
 ## Data Exploration
 
 | Category | Key Findings |
@@ -14,6 +15,7 @@
 | **Outlier Analysis** | • Credit Amount: 167 outliers<br>• Age: 272 outliers<br>• Bill Amounts: ~2,400-2,725 outliers<br>• Payment Amounts: ~2,700-3,000 outliers |
 | **Scale Analysis** | • Credit Amount: 10,000 to 1,000,000<br>• Age: 21 to 79<br>• Bill Amounts: -339,603 to 1,664,089<br>• Payment Amounts: 0 to 1,684,259 |
 
+# Update
 ## Network Probability Analysis
 
 ### Target Variable Analysis (Y)
@@ -44,6 +46,7 @@
 - Nodes: 11
 - Edges: 13
 
+# Update
 ## Bayesian Network Structure
 
 ![Bayesian Network for Credit Card Default Prediction](bayesian_network_visualization.png)
@@ -54,6 +57,7 @@ The Bayesian network has the following structure:
 - **Behavior Nodes**: Recent Payment Status, Average Payment Delay
 - **Target Node**: Default (Y)
 
+# Update
 ## Implementation Details
 
 ### Libraries Used
@@ -100,6 +104,7 @@ The model first discretizes continuous variables using `KBinsDiscretizer` from s
 
 The most complex CPT in the model is for the target variable Y (Default), which has 8 parent nodes according to the network structure, potentially resulting in a large conditional probability table.
 
+# Update
 ## Agent Design using PEAS Framework
 
 | Component | Description |
@@ -110,6 +115,7 @@ The most complex CPT in the model is for the target variable Y (Default), which 
 | **Sensors** | Keyboard for user input and information gathering |
 | **Agent Type** | Goal-based agent trying to maximize prediction accuracy |
 
+# Update
 ## Model Performance
 
 ```
@@ -129,7 +135,7 @@ Confusion Matrix:
 
 Accuracy: 0.7933
 ```
-
+# Update
 ## Conclusion
 
 ### Model Performance Analysis
@@ -160,7 +166,7 @@ The Bayesian network achieved an accuracy of 79.33%, which means that approximat
 
 The model provides valuable interpretability through its probability relationships, making it useful for understanding customer default risk factors in addition to making predictions.
 
-
+# Update
 # Code
 
 ```
